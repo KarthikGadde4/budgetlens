@@ -1,24 +1,23 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 import './App.css'
 import type { Transaction } from "./types/transaction";
-
 function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [amount, setAmount] = useState("");
-  const addDummyTransaction = () => {
+  const [type, setType] = useState<"income" | "expense">("expense");
+
+  const addTransaction = () => {
     const newTransaction: Transaction = {
       id: Date.now().toString(),
-      amount: 20,
-      type: "expense",
+      amount: Number(amount),
+      type,
       category: "Food",
       date: "2026-05-04",
-      note: "Test"
+      note: "test",
     };
 
     setTransactions([...transactions, newTransaction]);
+    setAmount("");
   };
 
   return (
@@ -32,6 +31,23 @@ function App() {
         onChange={(e) => setAmount(e.target.value)}
       />
 
+      <button onClick={addTransaction}>
+        Add Transaction
+      </button>
+
+      
+    <div>
+      <p>Current type: {type}</p>
+    <button onClick={() => setType("expense")}>
+      Expense
+    </button>
+
+    <button onClick={() => setType("income")}>
+      Income
+    </button>
+  </div>
+  
+
       <ul>
         {transactions.map((t) => (
           <li key={t.id}>
@@ -41,6 +57,8 @@ function App() {
       </ul>
     </div>
   );
+
+  
 }
 
 export default App;
