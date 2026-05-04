@@ -7,7 +7,7 @@ import type { Transaction } from "./types/transaction";
 
 function App() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-
+  const [amount, setAmount] = useState("");
   const addDummyTransaction = () => {
     const newTransaction: Transaction = {
       id: Date.now().toString(),
@@ -25,9 +25,12 @@ function App() {
     <div>
       <h1>BudgetLens</h1>
 
-      <button onClick={addDummyTransaction}>
-        Add Test Transaction
-      </button>
+      <input
+        type="text"
+        placeholder="Enter amount"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+      />
 
       <ul>
         {transactions.map((t) => (
