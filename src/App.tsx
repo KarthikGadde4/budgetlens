@@ -18,6 +18,7 @@ function App() {
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<"income" | "expense">("expense");
   const [category, setCategory] = useState<Category>("Other");
+  const [date, setDate] = useState("");
 
   const addTransaction = () => {
     const newTransaction: Transaction = {
@@ -25,12 +26,13 @@ function App() {
       amount: Number(amount),
       type,
       category,
-      date: "2026-05-04",
+      date,
       note: "test",
     };
 
     setTransactions([...transactions, newTransaction]);
     setAmount("");
+    setDate("");
   };
 
   return (
@@ -43,7 +45,11 @@ function App() {
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
       />
-
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        />
       <button onClick={addTransaction}>
         Add Transaction
       </button>
@@ -80,7 +86,7 @@ function App() {
       <ul>
         {transactions.map((t) => (
           <li key={t.id}>
-            {t.type} - ${t.amount} - {t.category}
+            {t.type} - ${t.amount} - {t.category} - {t.category}
           </li>
         ))}
       </ul>
