@@ -19,20 +19,43 @@ function App() {
   const [type, setType] = useState<"income" | "expense">("expense");
   const [category, setCategory] = useState<Category>("Other");
   const [date, setDate] = useState("");
+  const [note, setNote] = useState("");
 
   const addTransaction = () => {
+    if (amount === ""){
+      alert("Please enter an amount.");
+      return;
+    }
+    
+    const numericAmount = Number(amount);
+
+    if (Number.isNaN(numericAmount)) {
+      alert("Please enter a valid number.");
+      return;
+    }
+
+    if (numericAmount <= 0){
+      alert("Please enter an amount greater than 0.");
+      return;
+    }
+    if (date === "") {
+    alert("Please select a date.");
+    return;
+  }
+
     const newTransaction: Transaction = {
       id: Date.now().toString(),
-      amount: Number(amount),
+      amount: numericAmount,
       type,
       category,
       date,
-      note: "test",
+      note,
     };
 
     setTransactions([...transactions, newTransaction]);
     setAmount("");
     setDate("");
+    setNote("");
   };
 
   return (
@@ -49,6 +72,12 @@ function App() {
         type="date"
         value={date}
         onChange={(e) => setDate(e.target.value)}
+        />
+        <input
+        type="text"
+        placeholder='Add a note'
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
         />
       <button onClick={addTransaction}>
         Add Transaction
@@ -86,7 +115,7 @@ function App() {
       <ul>
         {transactions.map((t) => (
           <li key={t.id}>
-            {t.type} - ${t.amount} - {t.category} - {t.category}
+            {t.type} - ${t.amount} - {t.category} - {t.date} - {t.note}
           </li>
         ))}
       </ul>
