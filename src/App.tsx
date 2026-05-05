@@ -71,6 +71,13 @@ function App() {
 
   const balance = totalIncome - totalExpenses;
 
+  //Go through every transaction.
+  //Keep only the transactions whose id does NOT match the id we want to delete.
+  const deleteTransaction = (id: string) => {
+    setTransactions(transactions.filter((transaction) => transaction.id !== id));
+  
+  };
+
   return (
     <div>
       <h1>BudgetLens</h1>
@@ -135,6 +142,9 @@ function App() {
         {transactions.map((t) => (
           <li key={t.id}>
             {t.type} - ${t.amount} - {t.category} - {t.date} - {t.note}
+            <button onClick={() => deleteTransaction(t.id)}>
+              Delete
+            </button>
           </li>
         ))}
       </ul>
