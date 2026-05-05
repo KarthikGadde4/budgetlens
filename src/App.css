@@ -183,6 +183,7 @@ body {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   width: 100%;
   font-family: inherit;
+  color-scheme: light;
 }
 
 .field-input:focus {
