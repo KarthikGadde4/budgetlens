@@ -57,10 +57,29 @@ function App() {
     setDate("");
     setNote("");
   };
+  //Start with all transactions
+  //→ keep only income transactions
+  //→ add up their amounts
+  //→ store result in totalIncome
+  const totalIncome = transactions
+    .filter((transaction) => transaction.type === "income")
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+    
+  const totalExpenses = transactions
+    .filter((transactions) => transactions.type === "expense")
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+  const balance = totalIncome - totalExpenses;
 
   return (
     <div>
       <h1>BudgetLens</h1>
+
+      <div>
+        <p>Total Income: ${totalIncome}</p>
+        <p>Total Expenses: ${totalExpenses}</p>
+        <p>Balance: ${balance}</p>
+      </div>
 
       <input
         type="text"
