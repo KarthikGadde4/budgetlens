@@ -1,6 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import type { Transaction } from "./types/transaction";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 function App() {
   type Category =
   | "Rent"
@@ -14,7 +24,15 @@ function App() {
   | "Savings"
   | "Income"
   | "Other";
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>(() => {
+  const savedTransactions = localStorage.getItem("transactions");
+
+  if (savedTransactions) {
+    return JSON.parse(savedTransactions);
+  }
+
+    return [];
+  });
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<"income" | "expense">("expense");
   const [category, setCategory] = useState<Category>("Other");
@@ -77,8 +95,24 @@ function App() {
     setTransactions(transactions.filter((transaction) => transaction.id !== id));
   
   };
+  useEffect(() => {
+    localStorage.setItem("transactions", JSON.stringify(transactions));
+  }, [transactions]);
 
-  return (
+  const chartData = useMemo(() => {
+    const dailyNet = new Map<string, number>();
+    for (const t of transactions) {
+      const delta = t.type === "income" ? t.amount : -t.amount;
+      dailyNet.set(t.date, (dailyNet.get(t.date) ?? 0) + delta);
+    }
+    const sorted = [...dailyNet.entries()].sort(([a], [b]) => a.localeCompare(b));
+    let running = 0;
+    return sorted.map(([date, delta]) => {
+      running += delta;
+      return { date, balance: parseFloat(running.toFixed(2)) };
+    });
+  }, [transactions]);
+    return (
     <div>
       <h1>BudgetLens</h1>
 
@@ -137,6 +171,22 @@ function App() {
   <option value="Income">Income</option>
   <option value="Other">Other</option>
 </select>
+
+      <h2>Balance Over Time</h2>
+      {chartData.length > 0 ? (
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis tickFormatter={(v) => `$${v}`} />
+            <Tooltip formatter={(value) => [`$${value}`, "Balance"]} />
+            <Legend />
+            <Line type="monotone" dataKey="balance" stroke="#6366f1" strokeWidth={2} dot={true} name="Balance" />
+          </LineChart>
+        </ResponsiveContainer>
+      ) : (
+        <p>Add transactions to see your balance chart.</p>
+      )}
 
       <ul>
         {transactions.map((t) => (
