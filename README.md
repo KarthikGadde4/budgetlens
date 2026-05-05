@@ -2,63 +2,71 @@
 
 ## Overview
 
-BudgetLens is a personal finance management app that lets users log income and expenses, track their running balance, and visualize their financial health over time. All data is stored locally in the browser — no account or backend required.
+BudgetLens is a frontend-only personal finance tracker that helps users record income and expenses, view their current balance, and understand their spending through charts.
 
-Core features:
-- Add income and expense transactions with a date and category
-- Running balance updated in real time
-- Line chart showing cumulative balance over time
-- Pie chart breaking down expenses by category
-- Transaction history with delete support
-- Data persists across sessions via localStorage
+Users can add transactions with an amount, date, transaction type, category, and optional note/details. The app calculates total income, total expenses, and balance in real time. It also saves transactions in the browser using `localStorage`, so the data persists after refreshing the page.
+
+The goal of this project was to build a simple, functional finance dashboard without requiring a backend, authentication, or paid APIs.
 
 ## How to Run
 
+1. Clone the repository:
+
 ```bash
-git clone <repo-url>
+git clone https://github.com/KarthikGadde4/budgetlens
+```
+
+2. Move into the project folder:
+
+```bash
 cd budgetlens
+```
+
+3. Install dependencies:
+
+```bash
 npm install
+```
+
+4. Start the development server:
+
+```bash
 npm run dev
 ```
 
-Then open [http://localhost:5173](http://localhost:5173) in your browser.
+5. Open the local Vite URL in your browser:
+
+```bash
+http://localhost:5173
+```
 
 To build for production:
+
 ```bash
 npm run build
+```
+
+To preview the production build:
+
+```bash
 npm run preview
 ```
 
 ## Tech Stack
 
-| Layer | Choice |
-|---|---|
-| Framework | React 19 + TypeScript |
-| Build tool | Vite |
-| Charts | Recharts |
-| Styling | Plain CSS (no UI framework) |
-| Persistence | Browser localStorage |
+- React
+- TypeScript
+- Vite
+- Plain CSS
+- Recharts
+- Browser `localStorage`
 
 ## Architecture
 
-The app is a single-page React application. All state lives in `App.tsx` using `useState`. There are no external state managers or routers — the scope doesn't warrant it.
+BudgetLens is a single-page React application. Most of the current app logic lives in `App.tsx`, with styling handled in `App.css`.
 
-```
-src/
-  App.tsx           # All components and logic
-  App.css           # All styles
-  types/
-    transaction.ts  # Transaction type definition
-  index.css         # Global base styles (from Vite template)
-```
+The main data structure is a `Transaction` object:
 
-**Data flow:**
-1. User fills out the form and clicks "Add Transaction"
-2. `addTransaction()` validates input, creates a `Transaction` object, and appends it to state
-3. A `useEffect` syncs the updated array to `localStorage` on every change
-4. `useMemo` hooks derive chart data (daily running balance for the line chart, category totals for the pie chart) from the transaction array without re-computing unless transactions change
-
-**Type definition (`transaction.ts`):**
 ```ts
 type Transaction = {
   id: string;
@@ -67,67 +75,106 @@ type Transaction = {
   category: string;
   date: string;
   note?: string;
-}
+};
 ```
+
+The app stores transactions in React state:
+
+```ts
+const [transactions, setTransactions] = useState<Transaction[]>([]);
+```
+
+The general data flow is:
+
+1. The user enters transaction details into controlled form inputs.
+2. Each input updates its own React state variable.
+3. When the user adds a transaction, the app validates the input.
+4. If the input is valid, a new transaction object is created.
+5. The new transaction is added to the `transactions` array using `setTransactions`.
+6. Summary totals and chart data are derived from the transaction array.
+7. A `useEffect` saves the updated transactions to `localStorage`.
+8. When the app reloads, saved transactions are loaded back into state.
+
+The project is intentionally frontend-only. There is no backend, authentication, or database because the challenge can be completed with local browser storage.
 
 ## AI Tools Used
 
-- **Tool:** Claude Code (Claude Sonnet 4.6) — Anthropic's CLI, running as a VSCode extension
-- **How I used it:** I directed Claude to implement specific features one at a time, reviewed every change before accepting it, and course-corrected when output didn't match my intent. I wrote the prompts; Claude wrote the code; I understood and owned every line.
+- **Tool:** ChatGPT  
+- **How I used it:** I used ChatGPT as a step-by-step learning and debugging partner for the core React logic. It helped me reason through controlled inputs, state updates, validation, `filter()`, `reduce()`, delete logic, and `localStorage` persistence. I used it to understand the logic before moving to the next feature.
 
-**Feature build sequence (each was a separate prompt):**
-1. Add transaction state and a button to display transactions
-2. Add amount input
-3. Add income/expense toggle
-4. Add category dropdown
-5. Add date input
-6. Add input validation
-7. Add transaction summary totals (income, expenses, balance)
-8. Add transaction deletion
-9. Add a line chart tracking balance over time using Recharts
-10. Redesign the UI with a card layout and color coding
-11. Add expense pie chart; remove note field; hide categories for income transactions
+- **Tool:** Claude Code  
+- **How I used it:** I used Claude Code mainly for frontend/UI polish after the core functionality was working. Claude helped improve the dashboard layout, card styling, spacing, colors, chart presentation, and responsive design.
 
-**Debugging prompts that worked well:**
-- *"The pie chart looks like a toilet"* — surfaced the specific issue (donut `innerRadius` + `width="55%"` on `ResponsiveContainer` inside a flex container) and got a direct fix
-- *"The title logo gets cut off"* — led to diagnosing that the global `color-scheme: light dark` in `index.css` was clashing with the gradient text, and that swapping `h1` for `div` removed conflicting global styles
+- **Prompts that worked well:**
 
-**Where AI fell short:**
-- The initial pie chart layout needed two rounds of iteration (donut hole issue, then the `ResponsiveContainer` sizing) before it looked right — the first fix didn't fully solve it
-- The `Cell` component from Recharts v3 was deprecated; Claude's first approach still used it and needed a follow-up fix to embed fill colors directly in the data
+
+I used AI tools during the project, but I reviewed the generated changes and made sure I understood the code I kept. My main focus was to build and understand the core application logic first, then use AI assistance to improve presentation and polish.
 
 ## Key Design Decisions
 
-**Frontend-only with localStorage**
-No backend means no setup friction, no auth, and no data leaving the user's device. For a personal finance tracker used by one person, this is the right tradeoff.
+### React state as the source of information
 
-**All state in one component**
-The app is simple enough that splitting state across contexts or stores would add complexity without benefit. Three similar lines is better than a premature abstraction.
+Each form field is controlled by React state. For example, the amount input uses `value={amount}` to display the current state and `onChange` to update it as the user types. This keeps the form data inside React instead of relying on the DOM separately.
 
-**Fixed colors per category (not per insertion order)**
-Initially pie slices were colored by the order categories appeared in the transaction list — meaning similar categories (Groceries/Dining, Subscriptions/Entertainment) could randomly land on similar hues. Switching to a `CATEGORY_COLORS` map ensures each category always gets the same distinct color.
 
-**Income transactions have no category**
-Income is income. Forcing a category onto it (e.g. "Salary" vs "Freelance") adds complexity without improving the expense breakdown, which is the useful view.
+### localStorage for persistence
 
-**Recharts over a custom canvas solution**
-Recharts is the most popular React charting library, has solid TypeScript types, and handles responsive sizing via `ResponsiveContainer`. Building charts from scratch on `<canvas>` would take hours for worse results.
+React state resets when the page refreshes, so I used `localStorage` to save transactions in the browser. Since `localStorage` only stores strings, the app uses `JSON.stringify()` when saving transactions and `JSON.parse()` when loading them.
+
+### Plain CSS for styling
+
+I used plain CSS instead of a UI framework so the app would stay lightweight and easy to explain. This also made it easier to customize the dashboard layout directly.
+
+### AI-assisted UI polish
+
+I built and understood the main application logic first, then used Claude Code to help polish the frontend. This let me focus on the important logic while still producing a cleaner and more professional-looking final app.
 
 ## Challenges & How I Solved Them
 
-| Challenge | Solution |
-|---|---|
-| Pie chart rendered as a ring ("toilet") | Removed `innerRadius`; fixed `ResponsiveContainer` to `width="100%"` instead of `"55%"` inside a flex container |
-| Logo text clipped at bottom | Global `color-scheme: light dark` was clashing with `-webkit-background-clip: text`; changed element from `h1` to `div` to escape conflicting global `h1` styles, added `line-height: 1.5` |
-| Recharts `Cell` deprecated in v3 | Embedded `fill` color directly in each data object instead of wrapping slices in `<Cell>` children |
-| Pie category colors clashing | Replaced index-based color assignment with a `CATEGORY_COLORS` map so visually similar categories always get contrasting hues |
-| Native date picker not appearing | Global `color-scheme: light dark` was causing the browser to render the date input's calendar button in dark colors, invisible against the light background; added `color-scheme: light` to `.field-input` |
+### Understanding controlled inputs
+
+One of the first challenges was understanding how React form inputs work. I initially did not fully understand the relationship between `value`, `onChange`, and state.
+
+I solved this by breaking the pattern down:
+
+```text
+state = storage
+setState = updater
+value = what the input displays
+onChange = what updates state when the user types
+```
+
+Once I understood that pattern, I reused it for the amount, date, category, type, and note fields.
+
+### Preventing invalid transactions
+
+At first, the app could create transactions with missing or invalid values. For example, an empty amount could become `0`, and non-number text could turn into `NaN`.
+
+I solved this by adding validation inside `addTransaction()`. The app checks that the amount exists, converts it with `Number(amount)`, rejects invalid numbers with `Number.isNaN()`, requires the amount to be greater than zero, and checks that a date is selected before saving.
+
+### Keeping totals in sync with transactions
+
+Another challenge was calculating total income, total expenses, and balance without creating unnecessary state.
+
+I solved this by deriving the totals from the transaction array instead of storing them separately. I used `filter()` to separate income and expense transactions, then `reduce()` to add their amounts. That way, whenever transactions change, the totals naturally update.
+
+### Persisting transactions after refresh
+
+Originally, all transactions disappeared when the page refreshed because they only existed in React state.
+
+I solved this with `localStorage`. When the app first loads, it checks for saved transactions and parses them back into an array. Whenever the transaction list changes, a `useEffect` saves the updated array back to `localStorage`.
+
+AI helped me reason through the syntax and implementation details, but I made sure I understood the flow well enough to explain it.
+
+### Using AI as Assistance
+
+Claude Code was helpful for improving the frontend design, but I still had to make sure the generated UI changes did not break the existing logic. I used the AI output as a starting point, reviewed the changes, tested the app, and made sure I could explain the code before keeping it. AI also aided in the formatting and wording of both the README.md and REQUIREMENTS.md files.
 
 ## What I'd Improve With More Time
 
-- **Monthly budget goals** — set a spending limit per category, show progress toward it
-- **Date range filtering** — filter the charts and transaction list to a specific month or custom range
-- **CSV export** — let users download their transaction history
-- **Recurring transactions** — mark a transaction as recurring so it auto-populates monthly
-- **Multiple accounts** — separate tracking for checking, savings, credit card
-- **Better mobile layout** — the two-column form+chart grid collapses to single column, but the charts could use more work at small sizes
+- Add date range filtering for transactions and charts
+- Add a CSV export
+- Add recurring transactions
+- Break `App.tsx` into smaller reusable components as the app grows
+- Add better handling for corrupted or invalid `localStorage` data
+- Make a usable mobile design

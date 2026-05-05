@@ -2,94 +2,102 @@
 
 ## Purpose
 
-BudgetLens helps individual users track personal income and expenses, understand where their money is going, and monitor their financial health over time — without requiring an account, backend, or any paid services.
+BudgetLens is a frontend-only personal finance tracker that helps users log income and expenses, view their current balance, and understand their spending over time.
 
----
+The app is designed to run locally in the browser without requiring a backend, account system, database, or paid APIs.
 
-## Functional Requirements
+## Core Features
 
-### Transaction Management
+### 1. Transaction Management
 
-| ID | Requirement | Status |
-|---|---|---|
-| FR-1 | User can add a transaction with an amount, date, type (income/expense), and category | ✅ |
-| FR-2 | Amount must be a positive number; empty or invalid input is rejected with an alert | ✅ |
-| FR-3 | Date is required; missing date is rejected with an alert | ✅ |
-| FR-4 | Expense transactions require a category selected from a predefined list | ✅ |
-| FR-5 | Income transactions do not have a category (income is income) | ✅ |
-| FR-6 | User can delete any transaction | ✅ |
-| FR-7 | Transactions persist across browser sessions via localStorage | ✅ |
+Users can:
 
-### Expense Categories
+- Add income or expense transactions
+- Enter an amount
+- Select a date
+- Choose income or expense
+- Select an expense category when needed
+- Delete transactions from the history list
 
-Predefined categories for expense transactions:
-- Rent, Groceries, Dining, Transportation, Subscriptions, Shopping, Healthcare, Entertainment, Savings, Other
+The app validates transaction input before saving:
 
-### Summary Display
+- Amount is required
+- Amount must be a valid number
+- Amount must be greater than zero
+- Date is required
 
-| ID | Requirement | Status |
-|---|---|---|
-| FR-8 | Display total income across all transactions | ✅ |
-| FR-9 | Display total expenses across all transactions | ✅ |
-| FR-10 | Display current balance (total income − total expenses) | ✅ |
-| FR-11 | Balance card changes color based on positive/negative value | ✅ |
+### 2. Summary Dashboard
 
-### Data Visualization
+The app displays:
 
-| ID | Requirement | Status |
-|---|---|---|
-| FR-12 | Line chart showing cumulative balance over time, plotted by date | ✅ |
-| FR-13 | Pie chart showing expense breakdown by category as percentage of total expenses | ✅ |
-| FR-14 | Charts update in real time as transactions are added or deleted | ✅ |
-| FR-15 | Each expense category has a consistent, visually distinct color in the pie chart | ✅ |
-| FR-16 | Charts display an empty state message when no data exists | ✅ |
+- Total income
+- Total expenses
+- Current balance
 
-### Transaction History
+These values update automatically whenever transactions are added or deleted.
 
-| ID | Requirement | Status |
-|---|---|---|
-| FR-17 | All transactions are listed, sorted newest first | ✅ |
-| FR-18 | Each row shows category, date, and amount with +/− prefix | ✅ |
-| FR-19 | Income and expense transactions are color-coded (green / red) | ✅ |
+### 3. Data Visualization
 
----
+The app includes charts to help users understand their finances:
 
-## Non-Functional Requirements
+- A line chart showing balance over time
+- A pie chart showing expenses by category
 
-| ID | Requirement | Status |
-|---|---|---|
-| NFR-1 | No paid external APIs | ✅ |
-| NFR-2 | Frontend-only — no server, database, or authentication required | ✅ |
-| NFR-3 | App is usable on desktop browsers (Chrome, Firefox, Edge, Safari) | ✅ |
-| NFR-4 | Layout is responsive and usable on mobile (single-column below 768px) | ✅ |
-| NFR-5 | Chart data is computed programmatically from transactions — no static images | ✅ |
+The chart data is calculated from the user’s transactions.
 
----
+### 4. Transaction History
 
-## Out of Scope
+The app displays a transaction history section where users can review previous transactions.
 
-The following were considered but intentionally excluded to keep the app focused:
+Each transaction shows:
 
-- User authentication or multi-user support
-- Cloud sync or backend storage
-- Recurring / scheduled transactions
-- Budget goal-setting per category
-- CSV import/export
-- Date range filtering
-- Multiple account tracking (checking, savings, credit)
+- Type
+- Category
+- Date
+- Amount
+- Optional note/details, if included
+- Delete button
 
----
+### 5. Persistence
+
+Transactions are saved in the browser using `localStorage`.
+
+This means users can refresh the page and still see their saved transactions.
 
 ## Data Model
 
+Each transaction follows this structure:
+
 ```ts
 type Transaction = {
-  id: string;        // Date.now() string — unique per session
-  amount: number;    // Positive number
+  id: string;
+  amount: number;
   type: "income" | "expense";
-  category: string;  // From predefined list (expenses) or "Income"
-  date: string;      // YYYY-MM-DD from native date input
-}
+  category: string;
+  date: string;
+  note?: string;
+};
 ```
 
-Transactions are stored as a JSON array in `localStorage` under the key `"transactions"`.
+## Technical Requirements
+
+- Frontend-only application
+- Built with React and TypeScript
+- Uses Vite for development/build tooling
+- Uses plain CSS for styling
+- Uses `localStorage` for persistence
+- Uses a charting library for visualizations
+- No paid APIs
+- No backend required
+
+## Completion Criteria
+
+The project is complete when:
+
+- Users can add valid transactions
+- Invalid transactions are rejected
+- Users can delete transactions
+- Summary totals update correctly
+- Charts update from transaction data
+- Transactions persist after refresh
+- The app can be run locally using the README instructions
