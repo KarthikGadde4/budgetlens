@@ -37,6 +37,10 @@ const PIE_COLORS = [
   "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#84cc16",
 ];
 
+const currentYear = new Date().getFullYear();
+const MIN_DATE = `${currentYear - 50}-01-01`;
+const MAX_DATE = `${currentYear + 50}-12-31`;
+
 function App() {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     const saved = localStorage.getItem("transactions");
@@ -53,6 +57,10 @@ function App() {
     if (Number.isNaN(numericAmount)) { alert("Please enter a valid number."); return; }
     if (numericAmount <= 0) { alert("Please enter an amount greater than 0."); return; }
     if (date === "") { alert("Please select a date."); return; }
+    if (date < MIN_DATE || date > MAX_DATE) {
+      alert(`Date must be between ${MIN_DATE} and ${MAX_DATE}.`);
+      return;
+    }
 
     const newTransaction: Transaction = {
       id: Date.now().toString(),
@@ -175,6 +183,8 @@ function App() {
                 className="field-input"
                 type="date"
                 value={date}
+                min={MIN_DATE}
+                max={MAX_DATE}
                 onChange={(e) => setDate(e.target.value)}
               />
             </label>
