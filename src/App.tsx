@@ -132,7 +132,7 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1 className="logo">BudgetLens</h1>
+        <div className="logo">BudgetLens</div>
         <p className="tagline">Track your financial health</p>
       </header>
 

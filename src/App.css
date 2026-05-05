@@ -10,6 +10,13 @@ body {
   color: #1e293b;
 }
 
+#root {
+  width: 100%;
+  max-width: 100%;
+  border-inline: none;
+  text-align: left;
+}
+
 /* ── Layout ── */
 
 .app {
@@ -31,6 +38,8 @@ body {
 .logo {
   font-size: 2.2rem;
   font-weight: 800;
+  line-height: 1.4;
+  display: inline-block;
   background: linear-gradient(135deg, #6366f1, #8b5cf6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
