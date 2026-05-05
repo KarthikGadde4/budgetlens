@@ -11,8 +11,8 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-function App() {
-  type Category =
+
+type Category =
   | "Rent"
   | "Groceries"
   | "Dining"
@@ -24,14 +24,17 @@ function App() {
   | "Savings"
   | "Income"
   | "Other";
+
+const CATEGORIES: Category[] = [
+  "Rent", "Groceries", "Dining", "Transportation",
+  "Subscriptions", "Shopping", "Healthcare", "Entertainment",
+  "Savings", "Income", "Other",
+];
+
+function App() {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-  const savedTransactions = localStorage.getItem("transactions");
-
-  if (savedTransactions) {
-    return JSON.parse(savedTransactions);
-  }
-
-    return [];
+    const saved = localStorage.getItem("transactions");
+    return saved ? JSON.parse(saved) : [];
   });
   const [amount, setAmount] = useState("");
   const [type, setType] = useState<"income" | "expense">("expense");
@@ -40,26 +43,11 @@ function App() {
   const [note, setNote] = useState("");
 
   const addTransaction = () => {
-    if (amount === ""){
-      alert("Please enter an amount.");
-      return;
-    }
-    
+    if (amount === "") { alert("Please enter an amount."); return; }
     const numericAmount = Number(amount);
-
-    if (Number.isNaN(numericAmount)) {
-      alert("Please enter a valid number.");
-      return;
-    }
-
-    if (numericAmount <= 0){
-      alert("Please enter an amount greater than 0.");
-      return;
-    }
-    if (date === "") {
-    alert("Please select a date.");
-    return;
-  }
+    if (Number.isNaN(numericAmount)) { alert("Please enter a valid number."); return; }
+    if (numericAmount <= 0) { alert("Please enter an amount greater than 0."); return; }
+    if (date === "") { alert("Please select a date."); return; }
 
     const newTransaction: Transaction = {
       id: Date.now().toString(),
@@ -75,26 +63,21 @@ function App() {
     setDate("");
     setNote("");
   };
-  //Start with all transactions
-  //→ keep only income transactions
-  //→ add up their amounts
-  //→ store result in totalIncome
+
   const totalIncome = transactions
-    .filter((transaction) => transaction.type === "income")
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
-    
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
+
   const totalExpenses = transactions
-    .filter((transactions) => transactions.type === "expense")
-    .reduce((sum, transaction) => sum + transaction.amount, 0);
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
 
   const balance = totalIncome - totalExpenses;
 
-  //Go through every transaction.
-  //Keep only the transactions whose id does NOT match the id we want to delete.
   const deleteTransaction = (id: string) => {
-    setTransactions(transactions.filter((transaction) => transaction.id !== id));
-  
+    setTransactions(transactions.filter((t) => t.id !== id));
   };
+
   useEffect(() => {
     localStorage.setItem("transactions", JSON.stringify(transactions));
   }, [transactions]);
@@ -112,96 +95,166 @@ function App() {
       return { date, balance: parseFloat(running.toFixed(2)) };
     });
   }, [transactions]);
-    return (
-    <div>
-      <h1>BudgetLens</h1>
 
-      <div>
-        <p>Total Income: ${totalIncome}</p>
-        <p>Total Expenses: ${totalExpenses}</p>
-        <p>Balance: ${balance}</p>
+  const sortedTransactions = [...transactions].sort((a, b) => b.date.localeCompare(a.date));
+
+  return (
+    <div className="app">
+      <header className="header">
+        <h1 className="logo">BudgetLens</h1>
+        <p className="tagline">Track your financial health</p>
+      </header>
+
+      {/* Summary Cards */}
+      <div className="summary-grid">
+        <div className="summary-card income-card">
+          <span className="summary-label">Total Income</span>
+          <span className="summary-amount">+${totalIncome.toFixed(2)}</span>
+        </div>
+        <div className="summary-card expense-card">
+          <span className="summary-label">Total Expenses</span>
+          <span className="summary-amount">-${totalExpenses.toFixed(2)}</span>
+        </div>
+        <div className={`summary-card balance-card ${balance >= 0 ? "balance-positive" : "balance-negative"}`}>
+          <span className="summary-label">Balance</span>
+          <span className="summary-amount">${balance.toFixed(2)}</span>
+        </div>
       </div>
 
-      <input
-        type="text"
-        placeholder="Enter amount"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-      />
-      <input
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-        />
-        <input
-        type="text"
-        placeholder='Add a note'
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        />
-      <button onClick={addTransaction}>
-        Add Transaction
-      </button>
+      {/* Main content: form + chart */}
+      <div className="main-grid">
+        {/* Add Transaction Form */}
+        <div className="card">
+          <h2 className="card-title">Add Transaction</h2>
 
-      
-    <div>
-      <p>Current type: {type}</p>
-    <button onClick={() => setType("expense")}>
-      Expense
-    </button>
-
-    <button onClick={() => setType("income")}>
-      Income
-    </button>
-  </div>
-  
-  <select
-  value={category}
-  onChange={(e) => setCategory(e.target.value as Category)}
->
-  <option value="Rent">Rent</option>
-  <option value="Groceries">Groceries</option>
-  <option value="Dining">Dining</option>
-  <option value="Transportation">Transportation</option>
-  <option value="Subscriptions">Subscriptions</option>
-  <option value="Shopping">Shopping</option>
-  <option value="Healthcare">Healthcare</option>
-  <option value="Entertainment">Entertainment</option>
-  <option value="Savings">Savings</option>
-  <option value="Income">Income</option>
-  <option value="Other">Other</option>
-</select>
-
-      <h2>Balance Over Time</h2>
-      {chartData.length > 0 ? (
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis tickFormatter={(v) => `$${v}`} />
-            <Tooltip formatter={(value) => [`$${value}`, "Balance"]} />
-            <Legend />
-            <Line type="monotone" dataKey="balance" stroke="#6366f1" strokeWidth={2} dot={true} name="Balance" />
-          </LineChart>
-        </ResponsiveContainer>
-      ) : (
-        <p>Add transactions to see your balance chart.</p>
-      )}
-
-      <ul>
-        {transactions.map((t) => (
-          <li key={t.id}>
-            {t.type} - ${t.amount} - {t.category} - {t.date} - {t.note}
-            <button onClick={() => deleteTransaction(t.id)}>
-              Delete
+          <div className="type-toggle">
+            <button
+              className={`toggle-btn ${type === "expense" ? "active-expense" : ""}`}
+              onClick={() => setType("expense")}
+            >
+              Expense
             </button>
-          </li>
-        ))}
-      </ul>
+            <button
+              className={`toggle-btn ${type === "income" ? "active-income" : ""}`}
+              onClick={() => setType("income")}
+            >
+              Income
+            </button>
+          </div>
+
+          <div className="form-fields">
+            <label className="field-label">
+              Amount
+              <input
+                className="field-input"
+                type="text"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </label>
+
+            <label className="field-label">
+              Date
+              <input
+                className="field-input"
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </label>
+
+            <label className="field-label">
+              Category
+              <select
+                className="field-input"
+                value={category}
+                onChange={(e) => setCategory(e.target.value as Category)}
+              >
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field-label">
+              Note
+              <input
+                className="field-input"
+                type="text"
+                placeholder="Optional note"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <button className="add-btn" onClick={addTransaction}>
+            + Add Transaction
+          </button>
+        </div>
+
+        {/* Chart */}
+        <div className="card">
+          <h2 className="card-title">Balance Over Time</h2>
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#94a3b8" />
+                <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 12 }} stroke="#94a3b8" />
+                <Tooltip
+                  formatter={(value) => [`$${value}`, "Balance"]}
+                  contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px" }}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="balance"
+                  stroke="#6366f1"
+                  strokeWidth={2.5}
+                  dot={{ fill: "#6366f1", r: 4 }}
+                  activeDot={{ r: 6 }}
+                  name="Balance"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="chart-empty">
+              <p>Add transactions to see your balance chart.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Transaction List */}
+      <div className="card">
+        <h2 className="card-title">Transaction History</h2>
+        {sortedTransactions.length === 0 ? (
+          <p className="empty-state">No transactions yet. Add one above!</p>
+        ) : (
+          <ul className="transaction-list">
+            {sortedTransactions.map((t) => (
+              <li key={t.id} className={`transaction-item ${t.type === "income" ? "tx-income" : "tx-expense"}`}>
+                <div className="tx-left">
+                  <span className="tx-category">{t.category}</span>
+                  <span className="tx-meta">{t.date}{t.note ? ` · ${t.note}` : ""}</span>
+                </div>
+                <div className="tx-right">
+                  <span className={`tx-amount ${t.type === "income" ? "amount-income" : "amount-expense"}`}>
+                    {t.type === "income" ? "+" : "-"}${t.amount.toFixed(2)}
+                  </span>
+                  <button className="delete-btn" onClick={() => deleteTransaction(t.id)} title="Delete">
+                    ✕
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
-
-  
 }
 
 export default App;
