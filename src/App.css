@@ -210,24 +210,18 @@ body {
 
 /* ── Pie chart ── */
 
-.pie-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .pie-legend {
   list-style: none;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 12px;
 }
 
 .pie-legend-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 0.82rem;
 }
 
@@ -239,7 +233,6 @@ body {
 }
 
 .pie-legend-name {
-  flex: 1;
   color: #475569;
 }
 

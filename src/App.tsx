@@ -32,10 +32,18 @@ const CATEGORIES: Category[] = [
   "Savings", "Other",
 ];
 
-const PIE_COLORS = [
-  "#6366f1", "#f59e0b", "#10b981", "#ef4444", "#3b82f6",
-  "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#84cc16",
-];
+const CATEGORY_COLORS: Record<string, string> = {
+  Rent:           "#6366f1",
+  Groceries:      "#10b981",
+  Dining:         "#ef4444",
+  Transportation: "#3b82f6",
+  Subscriptions:  "#f59e0b",
+  Shopping:       "#ec4899",
+  Healthcare:     "#14b8a6",
+  Entertainment:  "#8b5cf6",
+  Savings:        "#f97316",
+  Other:          "#94a3b8",
+};
 
 const currentYear = new Date().getFullYear();
 const MIN_DATE = `${currentYear - 50}-01-01`;
@@ -112,10 +120,10 @@ function App() {
     for (const t of transactions.filter((t) => t.type === "expense")) {
       totals.set(t.category, (totals.get(t.category) ?? 0) + t.amount);
     }
-    return [...totals.entries()].map(([name, value], i) => ({
+    return [...totals.entries()].map(([name, value]) => ({
       name,
       value: parseFloat(value.toFixed(2)),
-      fill: PIE_COLORS[i % PIE_COLORS.length],
+      fill: CATEGORY_COLORS[name] ?? "#94a3b8",
     }));
   }, [transactions]);
 
@@ -246,25 +254,24 @@ function App() {
           <div className="card">
             <h2 className="card-title">Expenses by Category</h2>
             {pieData.length > 0 ? (
-              <div className="pie-wrapper">
-                <ResponsiveContainer width="55%" height={260}>
+              <>
+                <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
                     <Pie
                       data={pieData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
                       outerRadius={100}
-                      paddingAngle={3}
+                      paddingAngle={2}
                       dataKey="value"
                     />
                     <Tooltip formatter={(value) => [`$${value}`, "Amount"]} contentStyle={{ borderRadius: "8px" }} />
                   </PieChart>
                 </ResponsiveContainer>
                 <ul className="pie-legend">
-                  {pieData.map((entry, i) => (
+                  {pieData.map((entry) => (
                     <li key={entry.name} className="pie-legend-item">
-                      <span className="pie-dot" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                      <span className="pie-dot" style={{ background: entry.fill }} />
                       <span className="pie-legend-name">{entry.name}</span>
                       <span className="pie-legend-pct">
                         {((entry.value / totalExpenses) * 100).toFixed(1)}%
@@ -272,7 +279,7 @@ function App() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </>
             ) : (
               <div className="chart-empty"><p>Add expenses to see the breakdown.</p></div>
             )}
