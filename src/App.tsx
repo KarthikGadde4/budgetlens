@@ -10,6 +10,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
 } from "recharts";
 
 type Category =
@@ -22,13 +24,17 @@ type Category =
   | "Healthcare"
   | "Entertainment"
   | "Savings"
-  | "Income"
   | "Other";
 
 const CATEGORIES: Category[] = [
   "Rent", "Groceries", "Dining", "Transportation",
   "Subscriptions", "Shopping", "Healthcare", "Entertainment",
-  "Savings", "Income", "Other",
+  "Savings", "Other",
+];
+
+const PIE_COLORS = [
+  "#6366f1", "#f59e0b", "#10b981", "#ef4444", "#3b82f6",
+  "#8b5cf6", "#ec4899", "#14b8a6", "#f97316", "#84cc16",
 ];
 
 function App() {
@@ -40,7 +46,6 @@ function App() {
   const [type, setType] = useState<"income" | "expense">("expense");
   const [category, setCategory] = useState<Category>("Other");
   const [date, setDate] = useState("");
-  const [note, setNote] = useState("");
 
   const addTransaction = () => {
     if (amount === "") { alert("Please enter an amount."); return; }
@@ -53,15 +58,13 @@ function App() {
       id: Date.now().toString(),
       amount: numericAmount,
       type,
-      category,
+      category: type === "income" ? "Income" : category,
       date,
-      note,
     };
 
     setTransactions([...transactions, newTransaction]);
     setAmount("");
     setDate("");
-    setNote("");
   };
 
   const totalIncome = transactions
@@ -82,7 +85,7 @@ function App() {
     localStorage.setItem("transactions", JSON.stringify(transactions));
   }, [transactions]);
 
-  const chartData = useMemo(() => {
+  const lineChartData = useMemo(() => {
     const dailyNet = new Map<string, number>();
     for (const t of transactions) {
       const delta = t.type === "income" ? t.amount : -t.amount;
@@ -94,6 +97,18 @@ function App() {
       running += delta;
       return { date, balance: parseFloat(running.toFixed(2)) };
     });
+  }, [transactions]);
+
+  const pieData = useMemo(() => {
+    const totals = new Map<string, number>();
+    for (const t of transactions.filter((t) => t.type === "expense")) {
+      totals.set(t.category, (totals.get(t.category) ?? 0) + t.amount);
+    }
+    return [...totals.entries()].map(([name, value], i) => ({
+      name,
+      value: parseFloat(value.toFixed(2)),
+      fill: PIE_COLORS[i % PIE_COLORS.length],
+    }));
   }, [transactions]);
 
   const sortedTransactions = [...transactions].sort((a, b) => b.date.localeCompare(a.date));
@@ -121,7 +136,7 @@ function App() {
         </div>
       </div>
 
-      {/* Main content: form + chart */}
+      {/* Main content: form + charts */}
       <div className="main-grid">
         {/* Add Transaction Form */}
         <div className="card">
@@ -164,29 +179,20 @@ function App() {
               />
             </label>
 
-            <label className="field-label">
-              Category
-              <select
-                className="field-input"
-                value={category}
-                onChange={(e) => setCategory(e.target.value as Category)}
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="field-label">
-              Note
-              <input
-                className="field-input"
-                type="text"
-                placeholder="Optional note"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-              />
-            </label>
+            {type === "expense" && (
+              <label className="field-label">
+                Category
+                <select
+                  className="field-input"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as Category)}
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
 
           <button className="add-btn" onClick={addTransaction}>
@@ -194,36 +200,73 @@ function App() {
           </button>
         </div>
 
-        {/* Chart */}
-        <div className="card">
-          <h2 className="card-title">Balance Over Time</h2>
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#94a3b8" />
-                <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 12 }} stroke="#94a3b8" />
-                <Tooltip
-                  formatter={(value) => [`$${value}`, "Balance"]}
-                  contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px" }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="balance"
-                  stroke="#6366f1"
-                  strokeWidth={2.5}
-                  dot={{ fill: "#6366f1", r: 4 }}
-                  activeDot={{ r: 6 }}
-                  name="Balance"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="chart-empty">
-              <p>Add transactions to see your balance chart.</p>
-            </div>
-          )}
+        {/* Charts column */}
+        <div className="charts-column">
+          {/* Line chart */}
+          <div className="card">
+            <h2 className="card-title">Balance Over Time</h2>
+            {lineChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart data={lineChartData} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#94a3b8" />
+                  <YAxis tickFormatter={(v) => `$${v}`} tick={{ fontSize: 12 }} stroke="#94a3b8" />
+                  <Tooltip
+                    formatter={(value) => [`$${value}`, "Balance"]}
+                    contentStyle={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: "8px" }}
+                  />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="balance"
+                    stroke="#6366f1"
+                    strokeWidth={2.5}
+                    dot={{ fill: "#6366f1", r: 4 }}
+                    activeDot={{ r: 6 }}
+                    name="Balance"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="chart-empty"><p>Add transactions to see your balance chart.</p></div>
+            )}
+          </div>
+
+          {/* Pie chart */}
+          <div className="card">
+            <h2 className="card-title">Expenses by Category</h2>
+            {pieData.length > 0 ? (
+              <div className="pie-wrapper">
+                <ResponsiveContainer width="55%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={3}
+                      dataKey="value"
+                    />
+                    <Tooltip formatter={(value) => [`$${value}`, "Amount"]} contentStyle={{ borderRadius: "8px" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <ul className="pie-legend">
+                  {pieData.map((entry, i) => (
+                    <li key={entry.name} className="pie-legend-item">
+                      <span className="pie-dot" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                      <span className="pie-legend-name">{entry.name}</span>
+                      <span className="pie-legend-pct">
+                        {((entry.value / totalExpenses) * 100).toFixed(1)}%
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <div className="chart-empty"><p>Add expenses to see the breakdown.</p></div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -238,7 +281,7 @@ function App() {
               <li key={t.id} className={`transaction-item ${t.type === "income" ? "tx-income" : "tx-expense"}`}>
                 <div className="tx-left">
                   <span className="tx-category">{t.category}</span>
-                  <span className="tx-meta">{t.date}{t.note ? ` · ${t.note}` : ""}</span>
+                  <span className="tx-meta">{t.date}</span>
                 </div>
                 <div className="tx-right">
                   <span className={`tx-amount ${t.type === "income" ? "amount-income" : "amount-expense"}`}>

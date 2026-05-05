@@ -200,6 +200,54 @@ body {
 .add-btn:hover  { opacity: 0.92; }
 .add-btn:active { transform: scale(0.98); }
 
+/* ── Charts column ── */
+
+.charts-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Pie chart ── */
+
+.pie-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pie-legend {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.pie-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.pie-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pie-legend-name {
+  flex: 1;
+  color: #475569;
+}
+
+.pie-legend-pct {
+  font-weight: 700;
+  color: #1e293b;
+}
+
 /* ── Chart empty state ── */
 
 .chart-empty {
